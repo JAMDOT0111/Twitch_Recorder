@@ -1,0 +1,35 @@
+services:
+  twitch-recorder:
+    build: .
+    container_name: twitch-recorder
+    restart: unless-stopped
+
+    environment:
+      # Twitch API 憑證（從 .env 讀取，不要寫死在這裡）
+      - TWITCH_CLIENT_ID=${TWITCH_CLIENT_ID}
+      - TWITCH_CLIENT_SECRET=${TWITCH_CLIENT_SECRET}
+
+      # 要追蹤的實況主，逗號分隔
+      - TWITCH_STREAMERS=${TWITCH_STREAMERS:-}
+
+      # 錄影設定
+      - RECORDINGS_DIR=/recordings
+      - CONFIG_DIR=/config
+      - QUALITY=${QUALITY:-best}
+      - CHECK_INTERVAL=${CHECK_INTERVAL:-60}
+
+    volumes:
+      # 錄影檔輸出（改成你的實際路徑）
+      - ./recordings:/recordings
+
+      # 設定檔與日誌持久化
+      - ./config:/config
+
+    # 讓 container 可以正確處理 SIGTERM（優雅停止）
+    stop_grace_period: 30s
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
